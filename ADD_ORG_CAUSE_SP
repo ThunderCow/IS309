@@ -19,7 +19,6 @@ ERROR MESSAGES:
     Error effect:  Because a value is invalid, no data are inserted into the
             VM_CAUSE_NAME table.  
 */
-
 create or replace procedure ADD_ORG_CAUSE_SP (
     p_org_id            VM_ORGCAUSE.ORGANIZATION_ID%TYPE,    -- NOT NULL
     p_cause_name        VM_ORGCAUSE.CAUSE_NAME%TYPE -- NOT NULL
@@ -27,35 +26,51 @@ create or replace procedure ADD_ORG_CAUSE_SP (
 IS
 
 ex_error exception;
-err_msg_txt varchar(100) :=null;
+err_msg_txt varchar(250) :=null;
+lv_org_id NUMBER;
+lv_count NUMBER;
 
 BEGIN
 
-if p_org_id is null then
-err_msg_txt := 'Missing mandatory value for parameter ORGANIZATION_ID in context ADD_ORG_CAUSE_SP';
-raise ex_error;
-elsif p_cause_name is null then
-err_msg_txt := 'Missing mandatory value for parameter CAUSE_NAME in context ADD_ORG_CAUSE_SP';
-raise ex_error;
-end if;
+SELECT COUNT (ORGANIZATION_ID) INTO lv_org_id FROM VM_ORGANIZATION WHERE ORGANIZATION_ID = p_org_id;
+    IF lv_org_id IS NULL THEN
+        err_msg_txt := 'Missing mandatory value for parameter ' || p_org_id || ', in context ADD_ORG_CAUSE_SP';
+        RAISE ex_error; 
+            
+        ELSIF lv_org_id = 0 THEN 
+        err_msg_txt := 'Invalid value for parameter ' || p_org_id || ', in context ADD_ORG_CAUSE_SP.
+        No such ID is found in VM_ORGANIZATION';
+        RAISE ex_error;
+    END IF;
+
+SELECT COUNT(*) INTO lv_count FROM VM_CAUSE WHERE CAUSE_NAME = p_cause_name;
+    IF lv_count IS NULL THEN
+        err_msg_txt := 'Missing mandatory value for parameter ' || p_cause_name ||', in context ADD_ORG_CAUSE_SP';
+        RAISE ex_error;
+    
+        ELSIF lv_count = 0 THEN
+        err_msg_txt := 'Invalid value for parameter ' || p_cause_name ||', in context ADD_ORG_CAUSE_SP.
+        No such name is found in VM_CAUSE';
+        RAISE ex_error;
+    END IF;
 
     INSERT INTO VM_ORGCAUSE ("ORGANIZATION_ID", "CAUSE_NAME")
     VALUES (p_org_id, p_cause_name);
     COMMIT;
 
-Exception
-    when ex_error then
+EXCEPTION
+    WHEN ex_error THEN
     dbms_output.put_line(err_msg_txt);
-    rollback;
-    when others then
+    ROLLBACK;
+    WHEN OTHERS THEN
     dbms_output.put_line(' the error code is: ' || sqlcode);
     dbms_output.put_line(' the error msg is: ' || sqlerrm);
-    rollback;
+    ROLLBACK;
 
 END;
 /
 
 BEGIN 
-    ADD_ORG_CAUSE_SP(null,'Test1');
+    ADD_ORG_CAUSE_SP(1, NULL);
 END;
 /
