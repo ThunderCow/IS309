@@ -1,3 +1,27 @@
+/*
+CREATE_MEMBER_SP.  This procedure will create a new member by inserting a row 
+into the VM_PERSON and VM_MEMBER tables. The procedure will use 
+CREATE_PERSON_SP procedure for the former. The person id generated when 
+inserting into the VM_PERSON table will be used as the primary key value for the 
+row inserted into the VM_MEMBER table.  The procedure will also call 
+CREATE_LOCATION_SP to store the location data provided.
+
+PARAMETERS:  Described below
+RETURNS:  a new or existing person_id, identifying the member
+ERROR MESSAGES:
+    Error text:  "Missing mandatory value for parameter (x)  in context (y).  No member added." 
+    Error meaning: A mandatory value is missing.  Here, y = 'CREATE_MEMBER_SP'
+	Error effect: Because a mandatory value is not provided, no data are 
+            inserted into the VM_MEMBER table.  The p_person_id value returned 
+            is NULL.
+            
+    Error text: "Invalid value (x) in context (y). No member created."
+    Error meaning:  A value for parameter x is not valid.  Here, y = 'CREATE_MEMBER_SP'.
+        This could arise if the person_id returned by CREATE_PERSON_SP is not valid,
+        or the location_id returned by CREATE_LOCATION_SP is not valid.
+            
+*/
+
 CREATE OR REPLACE PROCEDURE CREATE_PERSON_SP (
     p_person_ID         VM_PERSON.PERSON_ID%TYPE,
     p_person_email      VM_PERSON.PERSON_EMAIL%TYPE,
