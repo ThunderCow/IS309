@@ -1,3 +1,43 @@
+/*
+CREATE_ORGANIZATION_SP.  Add a new organization to the VM_ORGANIZATION table.  
+The contact person data will be used to create a new contact person by calling 
+the CREATE_PERSON_SP procedure.  The procedure will also call the 
+CREATE_LOCATION_SP procedure to create a new location or use an existing one.
+
+PARAMETERS:  Described below
+RETURNS:  a new or existing organization_id, identifying the organization.
+ERROR MESSAGES:
+    Error text:  "Missing mandatory value for parameter (x)  in context (y). No organization created." 
+	Error effect: Because a mandatory value is not provided, no data are 
+            inserted into the VM_ORGANIZATION table.  The p_org_id value 
+            returned is NULL.  Here, y = 'CREATE_ORGANIZATION_SP'
+            
+    Error text:  "Invalid value for parameter (x) in context (y).  No organization added."
+    Error meaning.  A parameter does not match the domain specification, i.e.
+            the organization_type is not one of the permitted values.  
+            Here, y = 'CREATE_ORGANIZATION_SP'
+    Error effect:  Because a value is invalid, no data are inserted into the
+            VM_ORGANIZATION table.  The p_org_id value returned is
+            NULL.
+            
+    Error text:  "Invalid point of contact (x)"
+    Error meaning:  The call to the CREATE_PERSON_SP routine has failed to 
+        create or retrieve a person_id value.
+    Error effect:   Because a valid point of contact cannot be associated with
+        the organization, no data are inserted into the VM_ORGANIZATION table. 
+        The p_organization_id value returned is NULL.
+        
+    Error text:  "Invalid location (x)"
+    Error meaning:  The call to the CREATE_LOCATION_SP routine has failed to 
+        create or retrieve a location_id value.
+    Error effect:   Because a valid location cannot be associated with
+        the organization, no data are inserted into the VM_ORGANIZATION table. 
+        The p_organization_id value returned is NULL.
+  
+            
+*/
+
+
 create or replace PROCEDURE CREATE_ORGANIZATION_SP (
     p_org_name                  VM_ORGANIZATION.ORGANIZATION_NAME%TYPE,
     p_org_mission               VM_ORGANIZATION.ORGANIZATION_MISSION_STATEMENT%TYPE,
