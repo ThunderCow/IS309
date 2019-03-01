@@ -13,7 +13,6 @@ CURSOR chk_dup is
     SELECT PERSON_ID FROM VM_PERSON WHERE PERSON_ID = p_person_id;
 
 ex_error exception;
-p_count number (10);
 err_msg_txt varchar(150) :=null;
 chk_pr_id NUMBER;
 chk_pr_dup number;
