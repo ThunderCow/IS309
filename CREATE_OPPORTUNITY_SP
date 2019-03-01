@@ -67,6 +67,28 @@ create or replace procedure CREATE_OPPORTUNITY_SP (
 )
 IS
 BEGIN
+
+if p_opp_id is null then
+err_msg_txt := 'Missing mandatory value for parameter, OPPORTUNITY_ID  can not be null. 
+The p_person_id value returned is NULL.  ';
+raise ex_error;
+
+elsif p_opp_title is null then
+err_msg_txt := 'Missing mandatory value for parameter, OPPORTUNITY_TITLE  can not be null. 
+The p_person_id value returned is NULL.  ';
+raise ex_error;
+
+elsif p_opp_description is null then
+err_msg_txt := 'Missing mandatory value for parameter, OPPORTUNITY_DESCRIPTION  can not be null.
+The p_person_id value returned is NULL.  ';
+raise ex_error;
+
+elsif p_opp_create_date is null then
+err_msg_txt := 'Missing mandatory value for parameter, OPPORTUNITY_CREATE_DATE  can not be null. 
+The p_person_id value returned is NULL.  ';
+raise ex_error;
+end if;
+
     NULL;
 END;
 /
