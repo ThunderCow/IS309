@@ -32,9 +32,7 @@ ERROR MESSAGES:
         create or retrieve a location_id value.
     Error effect:   Because a valid location cannot be associated with
         the organization, no data are inserted into the VM_ORGANIZATION table. 
-        The p_organization_id value returned is NULL.
-  
-            
+        The p_organization_id value returned is NULL.         
 */
 
 
@@ -70,6 +68,7 @@ org_id NUMBER;
 ex_error exception;
 err_msg_txt varchar(200) :=null;
 lv_henter_verdi NUMBER;
+inserted_id number;
 
 CURSOR chk_org IS
     SELECT ORGANIZATION_ID FROM VM_ORGANIZATION WHERE VM_ORGANIZATION.ORGANIZATION_NAME = p_org_name;
@@ -103,17 +102,37 @@ raise ex_error;
 end if;
 
 /*CREATING PERSON THROUGH CALLING PERSON PROCEDURE*/
-SELECT count (*)INTO lv_person_id_out FROM VM_PERSON where lv_person_id_out = PERSON_ID;
+SELECT count (*)
+INTO lv_person_id_out 
+FROM VM_PERSON 
+where lv_person_id_out = PERSON_ID;
 
-CREATE_PERSON_SP(lv_person_id_out, p_person_email, P_person_given_name, p_person_surname, p_person_phone);
+CREATE_PERSON_SP(
+lv_person_id_out, 
+p_person_email, 
+P_person_given_name, 
+p_person_surname, 
+p_person_phone);
+
     IF lv_person_id_out IS NULL THEN
         err_msg_txt := 'Invalild value for parameter ' || lv_person_id_out ||', in context with CREATE_ORGANIZATION_SP';
         RAISE ex_error;
     END IF;
     
 /*CREATING LOCATION THROUGH CALLING LOCATION PROCEDURE*/
-SELECT count (*)INTO lv_location_id_out FROM VM_LOCATION WHERE lv_location_id_out = LOCATION_ID;
-create_location_sp(p_location_country,p_location_postal_code,p_location_street1,p_location_street2,p_location_city,p_location_administrative_region);
+SELECT count (*)
+INTO lv_location_id_out 
+FROM VM_LOCATION
+WHERE lv_location_id_out = LOCATION_ID;
+
+create_location_sp(
+p_location_country,
+p_location_postal_code,
+p_location_street1,
+p_location_street2,
+p_location_city,
+p_location_administrative_region);
+
     IF lv_location_id_out IS NULL THEN
         err_msg_txt := 'Invalild value for parameter ' || lv_location_id_out ||', in context with CREATE_ORGANIZATION_SP';
         RAISE ex_error;
@@ -135,10 +154,39 @@ CLOSE chk_org;
 lv_henter_verdi := ORGANIZATION_SQ.NEXTVAL;
 
 /*INSERTING VALUES INTO ORGANIZATION*/
-    INSERT INTO VM_ORGANIZATION (ORGANIZATION_ID,ORGANIZATION_NAME,ORGANIZATION_MISSION_STATEMENT,ORGANIZATION_DESCRIPTION,ORGANIZATION_PHONE,ORGANIZATION_TYPE,ORGANIZATION_CREATION_DATE,ORGANIZATION_URL,ORGANIZATION_IMAGE_URL,ORGANIZATION_LINKEDIN_URL,ORGANIZATION_FACEBOOK_URL,ORGANIZATION_TWITTER_URL,PERSON_ID,LOCATION_ID)
+    INSERT INTO VM_ORGANIZATION (
+    ORGANIZATION_ID,
+    ORGANIZATION_NAME,
+    ORGANIZATION_MISSION_STATEMENT,
+    ORGANIZATION_DESCRIPTION,
+    ORGANIZATION_PHONE,
+    ORGANIZATION_TYPE,
+    ORGANIZATION_CREATION_DATE,
+    ORGANIZATION_URL,
+    ORGANIZATION_IMAGE_URL,
+    ORGANIZATION_LINKEDIN_URL,
+    ORGANIZATION_FACEBOOK_URL,
+    ORGANIZATION_TWITTER_URL,
+    PERSON_ID,
+    LOCATION_ID)
 
-    VALUES (lv_henter_verdi,p_org_name,p_org_mission,p_org_descrip,p_org_phone,p_org_type,p_org_creation_date,p_org_URL,p_org_image_URL,p_org_linkedin_URL,p_org_facebook_URL,p_org_twitter_URL,lv_person_id_out,lv_location_id_out);
-
+    VALUES (
+    lv_henter_verdi,
+    p_org_name,
+    p_org_mission,
+    p_org_descrip,
+    p_org_phone,
+    p_org_type,
+    p_org_creation_date,
+    p_org_URL,
+    p_org_image_URL,
+    p_org_linkedin_URL,
+    p_org_facebook_URL,
+    p_org_twitter_URL,
+    lv_person_id_out,
+    lv_location_id_out)
+    RETURNING lv_henter_verdi INTO inserted_id;
+    DBMS_OUTPUT.PUT_LINE('Newly created data, has the ORAGNIZATION_ID = '||inserted_id);
     COMMIT;
 
 lv_organization_id_out :=  lv_henter_verdi;
