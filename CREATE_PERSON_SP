@@ -37,6 +37,7 @@ ex_error exception;
 p_count number (10);
 err_msg_txt varchar(150) :=null;
 chk_pr_id NUMBER;
+inserted_id number;
 
 BEGIN
 /*
@@ -79,20 +80,22 @@ FETCH chk_ID INTO chk_pr_id;
     END IF;
     CLOSE chk_ID;
 
-    INSERT INTO VM_PERSON (
+INSERT INTO VM_PERSON (
     "PERSON_ID",
     "PERSON_EMAIL",
     "PERSON_GIVEN_NAME",
     "PERSON_SURNAME",
     "PERSON_PHONE")
-    VALUES (
+VALUES (
     p_person_id,
     p_person_email,
     p_person_given_name,
     p_person_surname,
-    p_person_phone);
+    p_person_phone)
+    RETURNING p_person_id INTO inserted_id;
+    DBMS_OUTPUT.PUT_LINE('ID returned is = '||inserted_id);
     COMMIT;
-
+    
 Exception
 when ex_error then
 dbms_output.put_line(err_msg_txt);
@@ -111,6 +114,6 @@ END;
 /
 
 BEGIN
-    CREATE_PERSON_SP(11,NULL,'Ali','Amin','+47 91919191');
+    CREATE_PERSON_SP(15,'test6','Ali','Amin','+47 91919191');
 END;
 /
