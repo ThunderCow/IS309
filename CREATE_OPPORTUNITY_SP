@@ -65,34 +65,49 @@ create or replace procedure CREATE_OPPORTUNITY_SP (
     p_person_phone              IN VARCHAR    -- passed to CREATE_PERSON_SP    
 )
 IS
+
+
+CURSOR chk_dup is
+    SELECT OPPORTUNITY_ID FROM VM_OPPORTUNITY WHERE OPPORTUNITY_ID = p_opp_id;
+
+
 lv_person_id_out Number;
 lv_location_id_out NUMBER;
 lv_p_opp_id_out NUMBER;
+chk_dup NUMBER;
 
 ex_error exception;
 err_msg_txt varchar(200) :=null;
 --lv_henter_verdi NUMBER;
 BEGIN
 
+OPEN chk_dup;
+FETCH chk_dup INTO chk_pr_dup;
+    IF chk_dup%FOUND THEN
+        err_msg_txt := 'THE OPPORTUNITY_ID IS ALREADY FOUND, THE ID IS: ' || p_opp_id || ' THUS, NOT INSERTING NEW DATA ';
+        RAISE ex_error;
+    END IF;
+    CLOSE chk_dup;
+
 /*Check Mandatory values for Create_Opportunity*/
 if p_opp_id is null then
 err_msg_txt := 'Missing mandatory value for parameter, OPPORTUNITY_ID  can not be null. 
-The p_person_id value returned is NULL.  ';
+The p_opp_id value returned is NULL.  ';
 raise ex_error;
 
 elsif p_opp_title is null then
 err_msg_txt := 'Missing mandatory value for parameter, OPPORTUNITY_TITLE  can not be null. 
-The p_person_id value returned is NULL.  ';
+The p_opp_title value returned is NULL.  ';
 raise ex_error;
 
 elsif p_opp_description is null then
 err_msg_txt := 'Missing mandatory value for parameter, OPPORTUNITY_DESCRIPTION  can not be null.
-The p_person_id value returned is NULL.  ';
+The p_opp_description value returned is NULL.  ';
 raise ex_error;
 
 elsif p_opp_create_date is null then
 err_msg_txt := 'Missing mandatory value for parameter, OPPORTUNITY_CREATE_DATE  can not be null. 
-The p_person_id value returned is NULL.  ';
+The p_opp_create_date value returned is NULL.  ';
 raise ex_error;
 end if;
 
@@ -161,8 +176,11 @@ create_location_sp(
     p_opp_status,
     p_opp_great_for,
     lv_location_id_out
-    lv_person_id_out);
-
+    lv_person_id_out)
+    
+    RETURNING p_opp_id INTO inserted_id;
+    DBMS_OUTPUT.PUT_LINE('Newly created data, has the PERSON_ID = '||inserted_id);
+    
 lv_p_opp_id_out = lv_henter_verdi;
 
 /*EXCEPTION SECTION*/
