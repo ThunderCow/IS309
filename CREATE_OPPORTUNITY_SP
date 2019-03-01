@@ -70,11 +70,14 @@ IS
 CURSOR chk_dup is
     SELECT OPPORTUNITY_ID FROM VM_OPPORTUNITY WHERE OPPORTUNITY_ID = p_opp_id;
 
+CURSOR chk_org_id IS
+    SELECT ORGANIZATION_ID FROM VM_ORGANIZATION WHERE ORGANIZATION_ID = p_org_id;
 
 lv_person_id_out Number;
 lv_location_id_out NUMBER;
 lv_p_opp_id_out NUMBER;
 chk_dup NUMBER;
+lv_chk_id NUMBER;
 
 ex_error exception;
 err_msg_txt varchar(200) :=null;
@@ -146,6 +149,9 @@ create_location_sp(
         RAISE ex_error;
     END IF;
 
+OPEN chk_org_id;
+FETCH chk_org_id INTO lv_chk_id;
+IF chk_org_id%FOUND THEN
     INSERT INTO VM_CREATE_OPPORTUNITY (
     OPPORTUNITY_ID,
     OPPORTUNITY_TITLE,
@@ -180,8 +186,12 @@ create_location_sp(
     
     RETURNING p_opp_id INTO inserted_id;
     DBMS_OUTPUT.PUT_LINE('Newly created data, has the PERSON_ID = '||inserted_id);
-    
-lv_p_opp_id_out = lv_henter_verdi;
+
+ELSIF chk_org_id%NOTFOUND THEN
+    err_msg_txt := 'The value of the p_org_id parameter does not match which is ' || lv_chk_id ||', thus, no data are inserted';
+    RAISE ex_error;
+END IF;    
+    CLOSE chk_org_id; 
 
 /*EXCEPTION SECTION*/
 Exception
