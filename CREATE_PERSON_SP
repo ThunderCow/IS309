@@ -1,3 +1,28 @@
+/*
+CREATE_PERSON_SP.  Add a person to the VM_PERSON table. This procedure can be 
+used to add a point of contact for an opportunity or organization, but can also 
+be used when adding a member.  The procedure returns the identifier of the newly 
+inserted person.  Duplicate email addresses are not permitted.  If a duplicate 
+email is found, the procedures returns the identifier associated with that email 
+address.  In the latter case, it is not an error for the given name and the 
+surname to be NULL.  In this way, the procedure can be used as lookup function,
+finding the person_id value for a given email address.
+
+PARAMETERS:  Described below
+RETURNS:  a new or existing person_id, using the p_location_id output parameter.  
+ERROR MESSAGES:
+    Error text:  "Missing mandatory value for parameter (x)  in context (y).  No person added." 
+    Error meaning: A mandatory value is missing.  Here, y = 'CREATE_PERSON_SP'
+	Error effect: Because a mandatory value is not provided, no data are 
+            inserted into the VM_PERSON table.  The p_person_id value returned 
+            is NULL.  
+            
+    Error text:  "Email address (x) is already used."
+    Error effect: Because the email must be unique, no data are inserted into the 
+            VM_PERSON data.  The p_person_ID value returned is the one that 
+            corresponds to the person already in the table with this email.
+*/
+
 CREATE OR REPLACE PROCEDURE CREATE_PERSON_SP (
     p_person_ID         VM_PERSON.PERSON_ID%TYPE,
     p_person_email      VM_PERSON.PERSON_EMAIL%TYPE,
