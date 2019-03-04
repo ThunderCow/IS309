@@ -1,0 +1,4 @@
+/*Creating a sequence to auto increment in person_id*/
+CREATE SEQUENCE PERSON_SQ
+START WITH 5
+INCREMENT BY 1;
