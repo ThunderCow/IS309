@@ -1,17 +1,16 @@
 CREATE OR REPLACE PACKAGE volunteer3a_pkg
 IS
 PROCEDURE CREATE_LOCATION_PP (
-  p_location_id             OUT     VM_LOCATION.LOCATION_ID%TYPE,                     -- an output parameter
-  p_location_country	     IN        VM_LOCATION.LOCATION_COUNTRY%TYPE, 
-  p_location_postal_code    IN         VM_LOCATION.LOCATION_POSTAL_CODE%TYPE,
-  p_location_street1	    IN         VM_LOCATION.LOCATION_STREET_1%TYPE, 
-  p_location_street2	    IN         VM_LOCATION.LOCATION_STREET_2%TYPE, 
-  p_location_city	        IN         VM_LOCATION.LOCATION_CITY%TYPE, 
-  p_location_administrative_region IN   VM_LOCATION.LOCATION_ADMINISTRATIVE_REGION%TYPE
-);
+        p_location_id             OUT     VM_LOCATION.LOCATION_ID%TYPE,                     -- an output parameter
+        p_location_country	     IN        VM_LOCATION.LOCATION_COUNTRY%TYPE, 
+        p_location_postal_code    IN         VM_LOCATION.LOCATION_POSTAL_CODE%TYPE,
+        p_location_street1	    IN         VM_LOCATION.LOCATION_STREET_1%TYPE, 
+        p_location_street2	    IN         VM_LOCATION.LOCATION_STREET_2%TYPE, 
+        p_location_city	        IN         VM_LOCATION.LOCATION_CITY%TYPE, 
+        p_location_administrative_region IN   VM_LOCATION.LOCATION_ADMINISTRATIVE_REGION%TYPE
+    );
 END volunteer3a_pkg;
 /
-
 CREATE OR REPLACE PACKAGE BODY volunteer3a_pkg 
 IS
 PROCEDURE CREATE_LOCATION_PP (
@@ -49,11 +48,7 @@ end if;
 CLOSE chk_id;
 
 
-IF p_location_id is null THEN
-err_msg_txt:= 'LOCATION ID CANNOT BE null';
-raise ex_error;
-
-ELSIF  p_location_country is null then
+IF  p_location_country is null then
 err_msg_txt := 'Missing mandatory value for parameter, LOCATION_COUNTRY  can not be null. 
 The p_location_country value returned is NULL.  ';
 raise ex_error;
@@ -73,7 +68,7 @@ DBMS_OUTPUT.PUT_LINE('NEWLY CREATED DATA, HAS THE LOCATION_ID = ' || inserted_id
 
 commit;
 
-p_location_id_out := lv_lid_p_location_id;
+p_location_id := lv_lid_p_location_id;
 
 EXCEPTION
 WHEN ex_error THEN
@@ -92,8 +87,8 @@ END volunteer3a_pkg;
 DECLARE
 output_id NUMBER;
 BEGIN
-CREATE_LOCATION_SP (output_id,'NORWAY','2226','KONGENSGATE','STREET65','KRISTIANSAND','VEST-AGDER');
-dbms_output.put_line (output_id);
+    volunteer3a_pkg.CREATE_LOCATION_SP (output_id,'NORWAY','2226','KONGENSGATE','STREET65','KRISTIANSAND','VEST-AGDER');
+    dbms_output.put_line (output_id);
 
 END;
 /
