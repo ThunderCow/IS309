@@ -10,7 +10,6 @@ create or replace procedure CREATE_LOCATION_SP (
 
 IS
 ex_error exception;
-p_count number (10);
 err_msg_txt varchar(200) :=null;
 lv_lid_p_location_id NUMBER;
 p_location_id_out  NUMBER;
@@ -22,18 +21,21 @@ cursor chk_ID is
 
 BEGIN
 
-select count (*)
-into p_count 
-from VM_LOCATION
-WHERE LOCATION_COUNTRY = p_location_country AND LOCATION_POSTAL_CODE = p_location_postal_code AND LOCATION_STREET_1 = p_location_street1;
 
-IF p_count > 0
-then
-err_msg_txt := 'Location is already existed';
-raise ex_error; 
+OPEN chk_id;
+FETCH chk_id INTO chk_dp_id;
+IF chk_id%FOUND THEN
+    err_msg_txt := 'Location is already existing with current ID: ' || chk_dp_id;
+    p_location_id := chk_dp_id;
+    raise ex_error;
+end if; 
+CLOSE chk_id;
+
+
 IF p_location_id is null THEN
 err_msg_txt:= 'LOCATION ID CANNOT BE null';
 raise ex_error;
+
 ELSIF  p_location_country is null then
 err_msg_txt := 'Missing mandatory value for parameter, LOCATION_COUNTRY  can not be null. 
 The p_location_country value returned is NULL.  ';
@@ -44,16 +46,6 @@ err_msg_txt := 'Missing mandatory value for parameter, PERSON_EMAIL  can not be 
 The p_person_id value returned is NULL.  ';
 raise ex_error;
 end if; 
-end if;
-
-OPEN chk_id;
-FETCH chk_id INTO chk_dp_id;
-IF chk_id%FOUND THEN
-    err_msg_txt := 'Location is already existing with current ID: ' || chk_dp_id;
-    p_location_id := chk_dp_id;
-    raise ex_error;
-end if; 
-CLOSE chk_id;
 
 lv_lid_p_location_id := VM_LOCATION_sq.NEXTVAL;
 
@@ -84,6 +76,5 @@ BEGIN
 CREATE_LOCATION_SP (output_id,'NORWAY','2226','KONGENSGATE','STREET65','KRISTIANSAND','VEST-AGDER');
 dbms_output.put_line (output_id);
 
-COMMIT;
 END;
 /
