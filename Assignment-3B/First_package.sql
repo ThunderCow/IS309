@@ -9,7 +9,7 @@ PROCEDURE CREATE_LOCATION_PP (
   p_location_street2	IN	VARCHAR,
   p_location_city	    IN	VARCHAR,
   p_location_administrative_region IN VARCHAR
-  )
+)
 
 IS
 
@@ -69,12 +69,12 @@ rollback;
 END CREATE_LOCATION_PP;
 
 PROCEDURE CREATE_PERSON_PP (
-        p_person_id         OUT VM_PERSON.PERSON_ID%TYPE,
-        p_person_email      IN  VM_PERSON.PERSON_EMAIL%TYPE,
-        P_person_given_name IN  VM_PERSON.PERSON_GIVEN_NAME%TYPE,
-        p_person_surname    IN  VM_PERSON.PERSON_SURNAME%TYPE,
-        p_person_phone      IN  VM_PERSON.PERSON_PHONE%TYPE
-    )
+    p_person_ID             OUT INTEGER,     -- an output parameter
+    p_person_email          IN VARCHAR,  -- Must be unique, not null
+    P_person_given_name     IN VARCHAR,  -- NOT NULL, if email is unique (new)
+    p_person_surname        IN VARCHAR,  -- NOT NULL, if email is unique (new)
+    p_person_phone          IN VARCHAR
+)
 IS
 
 ex_error EXCEPTION;
@@ -147,19 +147,19 @@ rollback;
 
 END CREATE_PERSON_PP;
 
-PROCEDURE CREATE_MEMBER_PP(
-  person_id OUT NUMBER,
-  mem_Password IN VARCHAR,
-  person_Email IN VARCHAR,
-  person_Given_Name IN VARCHAR,
-  person_Surname IN VARCHAR,
-  person_Phone IN VARCHAR,
-  location_country	        IN	VARCHAR,  -- passed to CREATE_LOCATION_SP
-  location_postal_code      IN	VARCHAR,  -- passed to CREATE_LOCATION_SP
-  location_street1	        IN	VARCHAR,  -- passed to CREATE_LOCATION_SP
-  location_street2	        IN	VARCHAR,  -- passed to CREATE_LOCATION_SP
-  location_city	            IN	VARCHAR,  -- passed to CREATE_LOCATION_SP
-  location_administrative_region IN VARCHAR  -- passed to CREATE_LOCATION_SP
+PROCEDURE CREATE_MEMBER_PP (
+    p_person_ID             OUT INTEGER,     -- an output parameter
+    p_person_email          IN  VARCHAR,  -- passed through to CREATE_PERSON_PP
+    P_person_given_name     IN  VARCHAR,  -- passed through to CREATE_PERSON_PP
+    p_person_surname        IN  VARCHAR,  -- passed through to CREATE_PERSON_PP
+    p_person_phone          IN  VARCHAR,  -- passed through to CREATE_PERSON_PP
+    p_location_country	    IN  VARCHAR,  -- passed through to CREATE_LOCATION_PP
+    p_location_postal_code  IN	VARCHAR,  -- passed through to CREATE_LOCATION_PP
+    p_location_street1	    IN	VARCHAR,  -- passed through to CREATE_LOCATION_PP
+    p_location_street2	    IN	VARCHAR,  -- passed through to CREATE_LOCATION_PP
+    p_location_city	        IN	VARCHAR,  -- passed through to CREATE_LOCATION_PP
+    p_location_administrative_region IN VARCHAR, -- passed through to CREATE_LOCATION_SP
+    p_member_password       IN  VARCHAR   -- NOT NULL  
 )
 IS
   person_Id_Out NUMBER;
@@ -252,17 +252,18 @@ EXCEPTION
 END CREATE_MEMBER_PP;
 
 PROCEDURE CREATE_ORGANIZATION_PP (
-    p_org_name                  VM_ORGANIZATION.ORGANIZATION_NAME%TYPE,
-    p_org_mission               VM_ORGANIZATION.ORGANIZATION_MISSION_STATEMENT%TYPE,
-    p_org_descrip               VM_ORGANIZATION.ORGANIZATION_DESCRIPTION%TYPE,
-    p_org_phone                 VM_ORGANIZATION.ORGANIZATION_PHONE%TYPE,
-    p_org_type                  VM_ORGANIZATION.ORGANIZATION_TYPE%TYPE,
-    p_org_creation_date         VM_ORGANIZATION.ORGANIZATION_CREATION_DATE%TYPE,
-    p_org_URL                   VM_ORGANIZATION.ORGANIZATION_URL%TYPE,
-    p_org_image_URL             VM_ORGANIZATION.ORGANIZATION_IMAGE_URL%TYPE,
-    p_org_linkedin_URL          VM_ORGANIZATION.ORGANIZATION_LINKEDIN_URL%TYPE,
-    p_org_facebook_URL          VM_ORGANIZATION.ORGANIZATION_FACEBOOK_URL%TYPE,
-    p_org_twitter_URL           VM_ORGANIZATION.ORGANIZATION_TWITTER_URL%TYPE,
+    p_org_id                    OUT INTEGER,    -- output parameter
+    p_org_name                  IN VARCHAR,     -- NOT NULL
+    p_org_mission               IN VARCHAR,     -- NOT NULL
+    p_org_descrip               IN LONG,            
+    p_org_phone                 IN VARCHAR,     -- NOT NULL
+    p_org_type                  IN VARCHAR,     -- must conform to domain, if it has a value
+    p_org_creation_date         IN DATE,            -- IF NULL, use SYSDATE
+    p_org_URL                   IN VARCHAR,
+    p_org_image_URL             IN VARCHAR,
+    p_org_linkedin_URL          IN VARCHAR,
+    p_org_facebook_URL          IN VARCHAR,
+    p_org_twitter_URL           IN VARCHAR,
     p_location_country	        IN	VARCHAR,  -- passed to CREATE_LOCATION_SP
     p_location_postal_code      IN	VARCHAR,  -- passed to CREATE_LOCATION_SP
     p_location_street1	        IN	VARCHAR,  -- passed to CREATE_LOCATION_SP
@@ -273,7 +274,7 @@ PROCEDURE CREATE_ORGANIZATION_PP (
     P_person_given_name         IN VARCHAR,  -- passed to CREATE_PERSON_SP
     p_person_surname            IN VARCHAR,  -- passed to CREATE_PERSON_SP
     p_person_phone              IN VARCHAR   -- passed to CREATE_PERSON_SP
-    )
+)
 IS
 
 lv_person_id_out Number;
@@ -587,8 +588,8 @@ rollback;
 END CREATE_OPPORTUNITY_PP;
 
 PROCEDURE ADD_ORG_CAUSE_PP (
-    p_org_id            VM_ORGCAUSE.ORGANIZATION_ID%TYPE,    -- NOT NULL
-    p_cause_name        VM_ORGCAUSE.CAUSE_NAME%TYPE -- NOT NULL
+    p_org_id            IN  INTEGER,    -- NOT NULL
+    p_cause_name        IN  VARCHAR -- NOT NULL
 )
 IS
 
@@ -639,7 +640,7 @@ END ADD_ORG_CAUSE_PP;
 PROCEDURE ADD_MEMBER_CAUSE_PP (
     p_person_id     IN  INTEGER,    -- NOT NULL
     p_cause_name    IN  VARCHAR     -- NOT NULL
-    )
+)
     
 IS
 
@@ -697,11 +698,10 @@ Exception
 
 END ADD_MEMBER_CAUSE_PP;
 
-
 PROCEDURE ADD_OPP_SKILL_PP (
     p_opp_id        IN  INTEGER,    -- NOT NULL
     p_skill_name    IN  VARCHAR     -- NOT NULL
-    )
+)
 IS
 
 p_count number;
