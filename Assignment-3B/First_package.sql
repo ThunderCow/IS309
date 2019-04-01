@@ -1,15 +1,15 @@
-CREATE OR REPLACE PACKAGE BODY volunteer3a_pkg 
+CREATE OR REPLACE PACKAGE BODY volunteer3b_pkg 
 IS
 
 PROCEDURE CREATE_LOCATION_PP (
-  p_location_id             OUT     VM_LOCATION.LOCATION_ID%TYPE,                     -- an output parameter
-  p_location_country	     IN        VM_LOCATION.LOCATION_COUNTRY%TYPE, 
-  p_location_postal_code    IN         VM_LOCATION.LOCATION_POSTAL_CODE%TYPE,
-  p_location_street1	    IN         VM_LOCATION.LOCATION_STREET_1%TYPE, 
-  p_location_street2	    IN         VM_LOCATION.LOCATION_STREET_2%TYPE, 
-  p_location_city	        IN         VM_LOCATION.LOCATION_CITY%TYPE, 
-  p_location_administrative_region IN   VM_LOCATION.LOCATION_ADMINISTRATIVE_REGION%TYPE
-)
+  p_location_id		    OUT	INTEGER,        -- an output parameter
+  p_location_country	IN	VARCHAR,        -- must not be NULL
+  p_location_postal_code IN	VARCHAR,        -- must not be NULL
+  p_location_street1	IN	VARCHAR,
+  p_location_street2	IN	VARCHAR,
+  p_location_city	    IN	VARCHAR,
+  p_location_administrative_region IN VARCHAR
+  )
 
 IS
 
@@ -674,7 +674,7 @@ where p_cause_name = CAUSE_NAME;
 if p_cause_name is null then
 err_msg_txt := 'Missing mandatory value for parameter CAUSE_NAME in context ADD_MEMBER_CAUSE_SP';
 raise ex_error;
-
+end if;
 if p_count = 0 
 then 
 err_msg_txt := 'Invalid value for parameter p_cause_name in context ADD_OPP_SKILL_SP.
@@ -696,6 +696,7 @@ Exception
     rollback;
 
 END ADD_MEMBER_CAUSE_PP;
+
 
 PROCEDURE ADD_OPP_SKILL_PP (
     p_opp_id        IN  INTEGER,    -- NOT NULL
@@ -816,8 +817,7 @@ Exception
     dbms_output.put_line(' the error msg is: ' || sqlerrm);
     rollback;
 
-
 END ADD_MEMBER_SKILL_PP;
 
-END volunteer3a_pkg;
+END volunteer3b_pkg;
 /
