@@ -219,11 +219,11 @@ raise NO_PARAMETER_VALUE;
 end if;
 
 
-  CREATE_PERSON_SP(p_person_id ,p_person_email, p_person_surname, p_person_Surname, p_person_phone);
+  CREATE_PERSON_SP(p_person_email, p_person_given_name, p_person_surname, p_person_phone);
   IF person_Id_Out IS NULL THEN
     RAISE NO_UID_RECIEVED;
   END IF;
-  CREATE_LOCATION_SP(out_Location_Id, p_location_postal_code, p_location_street1, p_location_street2, p_location_city, p_location_administrative_region);
+  CREATE_LOCATION_SP(out_Location_Id, p_location_country, p_location_postal_code, p_location_street1, p_location_street2, p_location_city, p_location_administrative_region);
   IF out_Location_Id IS NULL THEN
     RAISE NO_LID_RECIEVED;
   END IF;
@@ -324,7 +324,6 @@ FROM VM_PERSON
 where lv_person_id_out = PERSON_ID;
 
 CREATE_PERSON_SP(
-lv_person_id_out, 
 p_person_email, 
 P_person_given_name, 
 p_person_surname, 
@@ -342,6 +341,7 @@ FROM VM_LOCATION
 WHERE lv_location_id_out = LOCATION_ID;
 
 create_location_sp(
+lv_location_id_out,
 p_location_country,
 p_location_postal_code,
 p_location_street1,
@@ -498,7 +498,6 @@ end if;
     SELECT count (*)INTO lv_person_id_out FROM VM_PERSON where lv_person_id_out = PERSON_ID;
 
 CREATE_PERSON_SP(
-    lv_person_id_out,
     p_person_email,
     P_person_given_name,
     p_person_surname,
