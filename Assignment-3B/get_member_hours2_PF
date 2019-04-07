@@ -1,0 +1,87 @@
+CREATE OR REPLACE FUNCTION get_member_hours(mem_email IN VARCHAR,
+start_date IN DATE,
+end_date IN DATE)
+
+RETURN float
+IS
+  missing_mand_value exception;
+  non_exsistable_id exception;
+  startdate_after_enddate exception;
+  err_msg_txt VARCHAR(150) := '';
+  chk_pr_id NUMBER;
+  total_hours number := 0;
+
+  cursor chk_mem_ID is
+  SELECT PERSON_ID FROM VM_PERSON WHERE PERSON_EMAIL = mem_email;
+
+BEGIN
+  OPEN chk_mem_ID;
+FETCH chk_mem_ID INTO chk_pr_id;
+    IF chk_mem_ID%NOTFOUND THEN
+        err_msg_txt := 'Member with email: ' || mem_email || ' does not exist';
+        RAISE non_exsistable_id;
+    END IF;
+    CLOSE chk_mem_ID;
+
+IF start_date > end_date THEN
+  err_msg_txt := 'Startdate cannot be after enddate';
+  raise startdate_after_enddate;
+end if;
+
+IF mem_email is null then
+  err_msg_txt := 'Missing mandatory value for parameter, mem_email  can not be null.
+  The hours worked value returned is NULL.  ';
+  raise missing_mand_value;
+
+END IF;
+
+IF start_date is null AND end_date is null THEN
+  FOR opp in (SELECT OPPORTUNITY_TITLE,SUM(TIMESHEET_VOLUNTEER_HOURS) as hours
+FROM VM_OPPORTUNITY
+LEFT JOIN VM_TIMESHEET ON VM_OPPORTUNITY.OPPORTUNITY_ID = VM_TIMESHEET.OPPORTUNITY_ID
+INNER JOIN VM_PERSON ON VM_TIMESHEET.PERSON_ID = VM_PERSON.PERSON_ID
+WHERE PERSON_EMAIL = 'jackson@aol.com' GROUP BY OPPORTUNITY_TITLE) LOOP
+    dbms_output.put_line('Opp name: ' || opp.OPPORTUNITY_TITLE || ' hours worked: ' || opp.hours);
+    total_hours := total_hours + opp.hours;
+  end loop;
+ELSIF start_date is null AND end_date is not null THEN
+  FOR opp in (SELECT OPPORTUNITY_TITLE,SUM(TIMESHEET_VOLUNTEER_HOURS) as hours
+FROM VM_OPPORTUNITY
+LEFT JOIN VM_TIMESHEET ON VM_OPPORTUNITY.OPPORTUNITY_ID = VM_TIMESHEET.OPPORTUNITY_ID
+INNER JOIN VM_PERSON ON VM_TIMESHEET.PERSON_ID = VM_PERSON.PERSON_ID
+  WHERE VM_PERSON.PERSON_EMAIL = mem_email AND TIMESHEET_VOLUNTEER_DATE < end_date GROUP BY OPPORTUNITY_TITLE) LOOP
+    dbms_output.put_line('Opp name: ' || opp.OPPORTUNITY_TITLE || ' hours worked: ' || opp.hours);
+    total_hours := total_hours + opp.hours;
+  end loop;
+ELSIF start_date is not null AND end_date is null THEN
+  FOR opp in (SELECT OPPORTUNITY_TITLE,SUM(TIMESHEET_VOLUNTEER_HOURS) as hours
+FROM VM_OPPORTUNITY
+LEFT JOIN VM_TIMESHEET ON VM_OPPORTUNITY.OPPORTUNITY_ID = VM_TIMESHEET.OPPORTUNITY_ID
+INNER JOIN VM_PERSON ON VM_TIMESHEET.PERSON_ID = VM_PERSON.PERSON_ID
+  WHERE VM_PERSON.PERSON_EMAIL = mem_email AND TIMESHEET_VOLUNTEER_DATE > start_date GROUP BY OPPORTUNITY_TITLE) LOOP
+    dbms_output.put_line('Opp name: ' || opp.OPPORTUNITY_TITLE || ' hours worked: ' || opp.hours);
+    total_hours := total_hours + opp.hours;
+  end loop;
+ELSIF start_date is not null AND end_date is not null THEN
+ FOR opp in (SELECT OPPORTUNITY_TITLE,SUM(TIMESHEET_VOLUNTEER_HOURS) as hours
+FROM VM_OPPORTUNITY
+LEFT JOIN VM_TIMESHEET ON VM_OPPORTUNITY.OPPORTUNITY_ID = VM_TIMESHEET.OPPORTUNITY_ID
+INNER JOIN VM_PERSON ON VM_TIMESHEET.PERSON_ID = VM_PERSON.PERSON_ID
+  WHERE VM_PERSON.PERSON_EMAIL = mem_email AND TIMESHEET_VOLUNTEER_DATE > start_date AND TIMESHEET_VOLUNTEER_DATE < end_date GROUP BY OPPORTUNITY_TITLE) LOOP
+    dbms_output.put_line('Opp name: ' || opp.OPPORTUNITY_TITLE || ' hours worked: ' || opp.hours);
+    total_hours := total_hours + opp.hours;
+ end loop;
+END IF;
+
+return total_hours;
+EXCEPTION
+  WHEN missing_mand_value THEN
+    dbms_output.put_line(err_msg_txt);
+    return null;
+  WHEN non_exsistable_id THEN
+    dbms_output.put_line(err_msg_txt);
+    return null;
+  WHEN startdate_after_enddate THEN
+    dbms_output.put_line(err_msg_txt);
+    return null;
+END get_member_hours;
