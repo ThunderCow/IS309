@@ -926,7 +926,7 @@ END ADD_MEMBER_SKILL_PP;
       WHEN startdate_after_enddate THEN
       dbms_output.put_line(err_msg_txt);
       RETURN NULL;
-    END get_member_hours;
+    END GET_MEMBER_HOURS_PF;
 
   FUNCTION GET_MEMBER_HOURS_PF(p_member_email  IN VARCHAR,
                             p_start_date IN DATE,
@@ -1036,7 +1036,7 @@ END ADD_MEMBER_SKILL_PP;
       WHEN startdate_after_enddate THEN
       dbms_output.put_line(err_msg_txt);
       RETURN NULL;
-    END get_member_hours;
+    END GET_MEMBER_HOURS_PF;
 
 END volunteer3b_pkg;
 /
