@@ -15,6 +15,7 @@ lv_get_oppr_id      VM_OPPORTUNITY.PERSON_ID%TYPE;
 lv_get_appr_email   VM_PERSON.PERSON_EMAIL%TYPE;
 lv_get_appr_status  VM_TIMESHEET.TIMESHEET_STATUS%TYPE;
 
+/*PREPARING CURSOR FOR RETRIEVING MEM_EMAIL*/
 CURSOR get_mem_email IS
     SELECT
         PERSON_EMAIL
@@ -25,6 +26,7 @@ CURSOR get_mem_email IS
     WHERE
         PERSON_EMAIL = p_member_email;
 
+/*PREPARING CURSOR FOR RETRIEVING OPPORTUNITY_ID*/
 CURSOR get_oppr_id IS
     SELECT
         VM_OPPORTUNITY.OPPORTUNITY_ID
@@ -32,7 +34,8 @@ CURSOR get_oppr_id IS
         VM_OPPORTUNITY
     WHERE
         OPPORTUNITY_ID = p_opportunity_id;
-
+        
+/*PREPARING CURSOR FOR RETRIEVING APPROVER_EMAIL*/
 CURSOR get_appr_email IS
        SELECT
         PERSON_EMAIL
@@ -40,7 +43,8 @@ CURSOR get_appr_email IS
         VM_PERSON
     WHERE
         PERSON_EMAIL = p_approver_email;
-
+        
+/*PREPARING CURSOR FOR RETRIEVING APPR_STATUS*/
 CURSOR get_status IS
     SELECT
         TIMESHEET_STATUS
@@ -50,39 +54,37 @@ CURSOR get_status IS
         TIMESHEET_STATUS = p_approval_status
         AND p_approval_status = 'approved' OR p_approval_status = 'not approved' OR p_approval_status = 'pending';
 
+/*PREPARING CURSOR FOR RETRIEVING MEM_ID, OPPORT_ID TO DO FURTHER OPERATION*/
 CURSOR get_recorded_hours IS
     SELECT
         PERSON_ID,
-        OPPORTUNITY_ID,
-        TIMESHEET_VOLUNTEER_DATE
+        OPPORTUNITY_ID
     FROM
         VM_TIMESHEET
     WHERE
-         VM_TIMESHEET.OPPORTUNITY_ID = p_opportunity_id 
-        AND VM_TIMESHEET.TIMESHEET_VOLUNTEER_DATE = p_volunteer_date; 
-        /*lv_get_record_hours get_recorded_hours%ROWTYPE;*/
+        VM_TIMESHEET.OPPORTUNITY_ID = p_opportunity_id;
+        lv_get_record_hours get_recorded_hours%ROWTYPE;
     
 BEGIN
+/*CHECKING DIFFERENT PARAMETERS WHETHER MISSING VALUES AND RAISE EXCEPTIONS*/
     IF p_member_email IS NULL THEN
     err_msg_txt := 'MISSING MANDATORY VALUE FOR PARAMETER "P_MEMBER_EMAIL" IN APPROVE_HOURS_PP';
     RAISE excp_app_hour;
-    END IF;
     
-    IF p_approver_email IS NULL THEN
+    ELSIF p_approver_email IS NULL THEN
     err_msg_txt := 'MISSING MANDATORY VALUE FOR PARAMETER "P_APPROVER_EMAIL" IN APPROVE_HOURS_PP';
     RAISE excp_app_hour;
-    END IF;
     
-    IF p_opportunity_id IS NULL THEN
+    ELSIF p_opportunity_id IS NULL THEN
     err_msg_txt := 'MISSING MANDATORY VALUE FOR PARAMETER "P_OPPORTUNITY_ID" IN APPROVE_HOURS_PP';
     RAISE excp_app_hour;
-    END IF;
     
-    IF p_approval_status IS NULL THEN
+    ELSIF p_approval_status IS NULL THEN
     err_msg_txt := 'MISSING MANDATORY VALUE FOR PARAMETER "P_APPROVAL_STATUS" IN APPROVE_HOURS_PP';
     RAISE excp_app_hour;
     END IF;
-
+    
+/*OPEN CURSOR, FETCHING DATA AND RAISE EXCEPTION IF NOT FOUND*/
 OPEN get_mem_email;
 FETCH get_mem_email INTO lv_get_member_email;
 IF (get_mem_email%NOTFOUND) THEN
@@ -92,6 +94,7 @@ IF (get_mem_email%NOTFOUND) THEN
     END IF;
 CLOSE get_mem_email;
 
+/*OPEN CURSOR FOR OPPR_ID, FETCHING DATA AND RAISE EXCEPTION IF NOT FOUND*/
 OPEN get_oppr_id;
 FETCH get_oppr_id INTO lv_get_oppr_id;
 IF (get_oppr_id%NOTFOUND) THEN
@@ -101,7 +104,7 @@ IF (get_oppr_id%NOTFOUND) THEN
 END IF;
 CLOSE get_oppr_id;
 
-
+/*OPEN CURSOR FOR APPR_EMAIL, FETCHING DATA AND RAISE EXCEPTION IF NOT FOUND*/
 OPEN get_appr_email;
 FETCH get_appr_email INTO lv_get_appr_email;
 IF (get_appr_email%NOTFOUND) THEN
@@ -111,6 +114,7 @@ IF (get_appr_email%NOTFOUND) THEN
     END IF;
 CLOSE get_appr_email;
 
+/*OPEN CURSOR FOR GETTING STATUS, FETCHING DATA AND RAISE EXCEPTION IF NOT FOUND*/
 OPEN get_status;
 FETCH get_status INTO lv_get_appr_status;
 IF (get_status%NOTFOUND) THEN
@@ -120,12 +124,14 @@ IF (get_status%NOTFOUND) THEN
     END IF;
 CLOSE get_status;
 
+/*OPEN CURSOR FOR RECORD, FETCHING DATA AND RAISE EXCEPTION IF NOT FOUND*/
 OPEN get_recorded_hours;
-/*FETCH get_recorded_hours INTO lv_get_record_hours;*/
+FETCH get_recorded_hours INTO lv_get_record_hours;
 IF (get_recorded_hours%NOTFOUND) THEN
     err_msg_txt := 'MEMBER "MEMBER_ID" HAS NO RECORED HOURS ON OPPORTUNITY "P_OPPORTUNITY_ID" ON "P_VOLUNTEER_DATE".';
- /*   DBMS_OUTPUT.PUT_LINE( 'GIVEN DETAIL IS:  MEMBER_ID: ' || lv_get_record_hours.person_id ||'OPPORTUNITY_ID: ' || lv_get_record_hours.opportunity_id || 'VOLUNTEER_DATE: ' || lv_get_record_hours.timesheet_volunteer_date);
- */
+   /*IN CASE OF SHOWING EXTRA INFORMATION WHAT THE USER HAS GIVEN DIFFERENT VALUES, 'DISABLED INTENTIONALLY.'
+   DBMS_OUTPUT.PUT_LINE( 'GIVEN INPUT DETAIL:  MEMBER_ID: ' || lv_get_record_hours.person_id ||'OPPORTUNITY_ID: ' || lv_get_record_hours.opportunity_id );
+   */
     RAISE excp_app_hour;
     
 ELSIF (get_recorded_hours%FOUND) THEN
@@ -151,6 +157,7 @@ EXCEPTION
         ROLLBACK;
 END;
 
+/*TESTING SECTION*/
 BEGIN
-    APPROVE_HOURS_PP('jackson@aol.com', 'wolcott.peter@gmail.com', 1,TO_DATE('03-FEB-19', 'dd-mm-yy'), 'pending');
+    APPROVE_HOURS_PP('jackson@aol.com', 'wolcott.peter@gmail.com',1,/*to_date('03-FEB-19', 'yy-mm-dd')*/null, 'pending');
 END;
