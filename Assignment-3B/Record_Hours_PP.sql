@@ -6,7 +6,7 @@ CREATE OR REPLACE PROCEDURE RECORD_HOURS_PP (
 )
 IS
     creation_date  DATE := current_date;
-    p_status   VARCHAR2(30) := 'PENDING';
+    p_status   VARCHAR2(30) := 'pending';
     approval_id VM_TIMESHEET.APPROVER_ID%TYPE;
     
     ex_record EXCEPTION;
@@ -123,5 +123,5 @@ END;
 
 /*TESTING SECTION*/
 BEGIN
-    RECORD_HOURS_PP();
+    RECORD_HOURS_PP('jackson@aol.com', 1,4, TO_DATE('2019-02-06', 'yyyy-mm-dd'));
 END;
