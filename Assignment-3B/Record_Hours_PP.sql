@@ -69,7 +69,7 @@ END IF;
 OPEN ret_mem_id;
 FETCH ret_mem_id INTO lv_mem_id_out;
 IF(ret_mem_id%NOTFOUND)THEN
-    err_msg_txt := 'MEMBER WITH THIS ID' ||lv_mem_id_out|| 'NOT FOUND. NO HOURSE ADDED';
+    err_msg_txt := 'MEMBER AGAINST THIS EMAIL: ' ||p_member_email|| ' NOT FOUND. NO HOURSE ADDED';
     RAISE ex_record;
 END IF;
 CLOSE ret_mem_id;
