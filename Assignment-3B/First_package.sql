@@ -1037,6 +1037,121 @@ END ADD_MEMBER_SKILL_PP;
       dbms_output.put_line(err_msg_txt);
       RETURN NULL;
     END GET_MEMBER_HOURS_PF;
+    
+procedure CREATE_COMMITMENT_PP (
+    p_commitment_id     OUT INTEGER,    -- Output parameter
+    p_member_email      IN  VARCHAR,    -- Not NULL
+    p_opportunity_id    IN  VARCHAR,    -- Not NULL
+    p_start_date        IN  DATE,
+    p_end_date          IN  DATE
+    )
+    is
 
+    ex_error exception;
+    missing_mandatory_value exception;
+    non_exsistable_id exception;
+    dates_out_of_bounds exception;
+    err_msg_txt                   VARCHAR(200);
+    lv_person_email_out          vm_person.person_email%TYPE;
+    lv_person_ID_out                vm_member.person_id%TYPE;
+    lv_opp_id_out                VM_OPPORTUNITY.OPPORTUNITY_ID%TYPE;
+    lv_start_date                 VM_COMMITMENT.COMMITMENT_START_DATE%TYPE;
+    lv_end_date                   VM_COMMITMENT.COMMITMENT_END_DATE%TYPE;
+    lv_comm_id                    VM_COMMITMENT.COMMITMENT_ID%TYPE;
+    lv_pers_id                    VM_PERSON.PERSON_ID%TYPE;
+    lv_opp_start_date             VM_OPPORTUNITY.OPPORTUNITY_START_DATE%TYPE;
+    lv_opp_end_date               VM_OPPORTUNITY.OPPORTUNITY_END_DATE%TYPE;
+    lv_new_comm_id                INTEGER;
+    member_id                     INTEGER;
+    mem_email                     vm_person.person_email%TYPE;
+
+
+    CURSOR retr_person_id IS
+    SELECT
+        VM_PERSON.PERSON_ID
+    INTO lv_pers_id
+    FROM
+        VM_PERSON
+    WHERE
+        PERSON_EMAIL = p_member_email;
+
+
+    CURSOR retr_commitment_id IS
+    SELECT
+        VM_COMMITMENT.COMMITMENT_ID
+    FROM
+        VM_COMMITMENT
+    WHERE PERSON_ID = (SELECT PERSON_ID FROM VM_PERSON WHERE PERSON_EMAIL = p_member_email)AND OPPORTUNITY_ID = p_opportunity_id;
+
+
+  BEGIN
+    IF p_opportunity_id = null THEN
+      err_msg_txt := ('Opportunity id cannot be null');
+      RAISE missing_mandatory_value;
+    ELSIF p_member_email = null THEN
+      err_msg_txt := ('Member email cannot be null');
+      RAISE missing_mandatory_value;
+    end if;
+
+    OPEN retr_person_id;
+    fetch retr_person_id into member_id;
+    IF retr_person_ID%NOTFOUND THEN
+        err_msg_txt := 'Member with email: ' || mem_email || ' does not exist';
+        RAISE non_exsistable_id;
+    END IF;
+    CLOSE retr_person_ID;
+
+    SELECT OPPORTUNITY_END_DATE, OPPORTUNITY_START_DATE
+    INTO lv_opp_end_date, lv_opp_start_date
+    FROM VM_OPPORTUNITY
+    WHERE OPPORTUNITY_ID = p_opportunity_id;
+    dbms_output.put_line('opp id = ' || p_opportunity_id || 'opp end = ' || lv_opp_end_date || ' lv_opp_start = ' || lv_opp_start_date);
+
+  IF lv_opp_start_date > p_start_date OR lv_opp_end_date < p_end_date THEN
+    err_msg_txt := 'Start and end dates for commitment must be within the time period the opportunity is active';
+    RAISE dates_out_of_bounds;
+  end if;
+
+  OPEN retr_commitment_id;
+  fetch retr_commitment_id into lv_comm_id;
+  IF retr_commitment_id%NOTFOUND THEN
+    select COMMITMENT_ID INTO lv_new_comm_id FROM VM_COMMITMENT WHERE COMMITMENT_ID = (select max(COMMITMENT_ID) FROM VM_COMMITMENT);
+    lv_new_comm_id := lv_new_comm_id + 1;
+    INSERT INTO VM_COMMITMENT (COMMITMENT_END_DATE,COMMITMENT_START_DATE,PERSON_ID,OPPORTUNITY_ID,COMMITMENT_STATUS,COMMITMENT_CREATION_DATE,COMMITMENT_ID)
+    VALUES (p_end_date,p_start_date,member_id,p_opportunity_id,'inquiry',CURRENT_DATE,lv_new_comm_id);
+  ELSE
+    SELECT COMMITMENT_START_DATE, COMMITMENT_END_DATE
+    into lv_start_date, lv_end_date
+    from VM_COMMITMENT
+    WHERE COMMITMENT_ID = lv_comm_id;
+    IF lv_end_date = null AND lv_start_date = null OR lv_start_date > p_start_date AND lv_end_date < p_end_date THEN
+      UPDATE VM_COMMITMENT
+      SET COMMITMENT_START_DATE = p_start_date, COMMITMENT_END_DATE = p_end_date
+      WHERE COMMITMENT_ID = lv_comm_id;
+    ELSIF lv_end_date = null OR lv_end_date < p_end_date THEN
+      UPDATE VM_COMMITMENT
+      SET COMMITMENT_END_DATE = p_end_date
+      WHERE COMMITMENT_ID = lv_comm_id;
+    ELSIF lv_start_date = null OR lv_start_date > p_start_date THEN
+      UPDATE VM_COMMITMENT
+      SET COMMITMENT_START_DATE = p_start_date
+      WHERE COMMITMENT_ID = lv_comm_id;
+    end if;
+  END IF;
+
+  COMMIT;
+  SELECT COMMITMENT_ID INTO p_commitment_id FROM VM_COMMITMENT WHERE OPPORTUNITY_ID = p_opportunity_id AND PERSON_ID = member_id;
+
+  EXCEPTION
+    WHEN dates_out_of_bounds THEN
+    dbms_output.put_line(err_msg_txt);
+    ROLLBACK;
+    WHEN non_exsistable_id THEN
+    dbms_output.put_line(err_msg_txt);
+    ROLLBACK;
+    WHEN ex_error THEN
+    dbms_output.put_line(err_msg_txt);
+    ROLLBACK;
+END CREATE_COMMITMENT_PP;
 END volunteer3b_pkg;
 /
