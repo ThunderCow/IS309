@@ -1,0 +1,38 @@
+create tablespace OHAMA64KB
+  logging
+  datafile '/u01/app/oracle/oradata/WOLCOTTDB/OHAMA64KB.dbf'
+  size 64k
+  extent management local
+  UNIFORM SIZE 64k;
+create tablespace OHAMA2MB
+  logging
+  datafile '/u01/app/oracle/oradata/WOLCOTTDB/OHAMA2MB.dbf'
+  size 2M
+  autoextend on
+  next 2M
+  extent management local
+  UNIFORM SIZE 2M;
+create tablespace OHAMA16MB
+  logging
+  datafile '/u01/app/oracle/oradata/WOLCOTTDB/OHAMA16MB.dbf'
+  size 16M
+  autoextend on
+  next 16M
+  extent management local
+  UNIFORM SIZE 4M;
+create tablespace OHAMA32MB
+  logging
+  datafile '/u01/app/oracle/oradata/WOLCOTTDB/OHAMA32MB.dbf'
+  size 32M
+  autoextend on
+  next 32M
+  extent management local
+  UNIFORM SIZE 4M;
+create tablespace OHAMA64MB
+  logging
+  datafile '/u01/app/oracle/oradata/WOLCOTTDB/OHAMA64MB.dbf'
+  size 64M
+  autoextend on
+  next 64M
+  extent management local
+  UNIFORM SIZE 4M;
